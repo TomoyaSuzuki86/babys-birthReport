@@ -110,9 +110,9 @@ const sections: Section[] = [
       },
       {
         id: "pack-work-insurance",
-        title: "扶養に入れる親の健康保険資格情報を確認する",
+        title: "妻の健康保険資格情報を確認する",
         detail:
-          "勤務先健保の名称や記号番号をすぐ出せるようにしておく。医療証申請の後追い準備にもなる。",
+          "妻の勤務先健保の名称や記号番号をすぐ出せるようにしておく。医療証申請の後追い準備にもなる。",
         onlyIf: { insurance: "workplace" }
       }
     ]
@@ -234,9 +234,9 @@ const sections: Section[] = [
       },
       {
         id: "request-dependent",
-        title: "勤務先健康保険の扶養追加申請を始める",
+        title: "妻の勤務先健康保険で扶養追加申請を始める",
         detail:
-          "会社様式や必要添付を確認し、子どもの資格情報が早く出るよう回し始める。",
+          "妻の会社様式や必要添付を確認し、子どもの資格情報が早く出るよう回し始める。",
         onlyIf: { insurance: "workplace" }
       },
       {
@@ -276,7 +276,7 @@ const sections: Section[] = [
 const defaultState: ProgressState = {
   checked: [],
   insurance: "workplace",
-  handClaimant: "father",
+  handClaimant: "mother",
   nicu: false,
   memo: ""
 };
