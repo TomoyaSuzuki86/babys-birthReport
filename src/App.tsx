@@ -22,6 +22,12 @@ type Section = {
   tasks: Task[];
 };
 
+type MailTemplate = {
+  id: string;
+  title: string;
+  body: string;
+};
+
 type ProgressState = {
   checked: string[];
   insurance: InsuranceRoute;
@@ -31,6 +37,79 @@ type ProgressState = {
 };
 
 const STORAGE_KEY = "birth-report-progress-v1";
+
+const mailTemplates: MailTemplate[] = [
+  {
+    id: "jks-general-affairs",
+    title: "総務宛: 出産後の提出物送付",
+    body: `件名: 出産後提出書類の送付（鈴木友也）
+
+日本ナレッジスペース株式会社
+総務部 田村様
+
+お疲れ様です。鈴木です。
+出産後の提出書類をお送りします。
+
+本メールの添付:
+- 母子手帳コピーその2（出生届出済証明ページ）
+- 通帳コピーまたはキャッシュカード画像
+- ikukyu_douisho（記入済みPDF）
+- 出生後休業支援給付の確認書類
+
+補足:
+- 子どもの氏名（カナ）: 〔ここに記入〕
+- 妻の扶養に入れる予定です
+
+不足や追加で必要な書類がありましたらご教示ください。
+よろしくお願いいたします。
+
+鈴木 友也`
+  },
+  {
+    id: "jks-child-kana",
+    title: "総務宛: 子どもの氏名カナ連絡",
+    body: `件名: 子どもの氏名（カナ）のご連絡（鈴木友也）
+
+日本ナレッジスペース株式会社
+総務部 田村様
+
+お疲れ様です。鈴木です。
+子どもの氏名（カナ）をご連絡いたします。
+
+長子:
+- 氏名: 〔ここに記入〕
+- カナ: 〔ここに記入〕
+
+第二子:
+- 氏名: 〔ここに記入〕
+- カナ: 〔ここに記入〕
+
+被扶養者については妻の扶養に入れる予定です。
+よろしくお願いいたします。
+
+鈴木 友也`
+  },
+  {
+    id: "jks-gojokai",
+    title: "互助会宛: 出産祝い金連絡",
+    body: `件名: 出産祝い金のご連絡（鈴木友也）
+
+互助会 ご担当者様
+
+お疲れ様です。鈴木友也です。
+子どもが出生しましたので、出産祝い金についてご連絡いたします。
+
+出生日:
+- 〔ここに記入〕
+
+子どもの情報:
+- 長子: 〔ここに記入〕
+- 第二子: 〔ここに記入〕
+
+必要な追加情報や提出物がありましたらご案内ください。
+よろしくお願いいたします。`
+  }
+];
 
 const sections: Section[] = [
   {
@@ -303,6 +382,50 @@ const sections: Section[] = [
     ]
   },
   {
+    id: "pdf-prep",
+    title: "事前にPDF化しておく書類",
+    subtitle:
+      "会社提出と電子申請の添付で使い回せるよう、先にファイル化しておくと楽です。",
+    tasks: [
+      {
+        id: "pdf-boshi-yotei",
+        title: "母子手帳の予定日ページをPDF化する",
+        detail:
+          "総務提出用。分娩予定日の記載ページを撮影して、1ファイルにまとめる。"
+      },
+      {
+        id: "pdf-bank",
+        title: "通帳またはキャッシュカードをPDF化する",
+        detail:
+          "総務提出用。名義が分かるページを撮影し、送付しやすいPDFにまとめる。"
+      },
+      {
+        id: "pdf-ikukyu-douisho",
+        title: "ikukyu_douisho を記入後にPDF化する",
+        detail:
+          "2か所チェック、雇用保険被保険者番号、署名捺印を入れてPDF保存する。原本郵送は不要。"
+      },
+      {
+        id: "pdf-folder",
+        title: "提出用PDFを1フォルダにまとめる",
+        detail:
+          "例: `JKS提出用`。ファイル名も `01_母子手帳予定日.pdf` のようにそろえる。"
+      },
+      {
+        id: "pdf-boshi-born-later",
+        title: "出産後に出生届出済証明ページを追加でPDF化する",
+        detail:
+          "出生後に必要になる母子手帳コピーその2。事前には未作成なので、出産後すぐ追加する。"
+      },
+      {
+        id: "pdf-spouse-proof-later",
+        title: "出産後に配偶者確認書類候補をPDF化する",
+        detail:
+          "出生後休業支援給付用。母子手帳の出生届出済証明ページなど、総務へ出す確認書類をまとめる。"
+      }
+    ]
+  },
+  {
     id: "nicu",
     title: "NICU・未熟児養育医療の確認",
     subtitle: "該当しないなら非表示にできます。",
@@ -360,6 +483,7 @@ function loadState(): ProgressState {
 function App() {
   const [state, setState] = useState<ProgressState>(defaultState);
   const [ready, setReady] = useState(false);
+  const [copiedTemplateId, setCopiedTemplateId] = useState<string | null>(null);
 
   useEffect(() => {
     setState(loadState());
@@ -424,6 +548,45 @@ function App() {
 
   const clearAll = () => {
     setState(defaultState);
+  };
+
+  const copyTemplate = async (template: MailTemplate) => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(template.body);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = template.body;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "absolute";
+        textarea.style.left = "-9999px";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+      setCopiedTemplateId(template.id);
+      window.setTimeout(() => {
+        setCopiedTemplateId((current) =>
+          current === template.id ? null : current
+        );
+      }, 1800);
+    } catch {
+      try {
+        const textarea = document.createElement("textarea");
+        textarea.value = template.body;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "absolute";
+        textarea.style.left = "-9999px";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+        setCopiedTemplateId(template.id);
+      } catch {
+        setCopiedTemplateId(null);
+      }
+    }
   };
 
   const claimantLabel = state.handClaimant === "father" ? "父" : "母";
@@ -550,6 +713,30 @@ function App() {
           }
           placeholder="例：医療証は子の資格情報が出たら電子申請で出す、など"
         />
+      </section>
+
+      <section className="task-section">
+        <div className="section-head">
+          <h2>メールテンプレ</h2>
+          <p>社内連絡でそのまま使える叩き台です。コピーして必要箇所だけ埋めて使えます。</p>
+        </div>
+        <div className="template-list">
+          {mailTemplates.map((template) => (
+            <article className="template-card" key={template.id}>
+              <div className="template-head">
+                <h3>{template.title}</h3>
+                <button
+                  className="copy-button"
+                  type="button"
+                  onClick={() => copyTemplate(template)}
+                >
+                  {copiedTemplateId === template.id ? "コピー済み" : "本文をコピー"}
+                </button>
+              </div>
+              <pre className="template-body">{template.body}</pre>
+            </article>
+          ))}
+        </div>
       </section>
 
       {visibleSections.map((section) => (

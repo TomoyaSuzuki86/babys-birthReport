@@ -71,6 +71,7 @@ textarea {
 
 h1,
 h2,
+h3,
 p {
   margin: 0;
 }
@@ -248,6 +249,49 @@ textarea {
   gap: 12px;
 }
 
+.template-list {
+  display: grid;
+  gap: 12px;
+}
+
+.template-card {
+  border-radius: 20px;
+  border: 1px solid rgba(122, 93, 57, 0.14);
+  background: rgba(255, 252, 247, 0.94);
+  padding: 16px;
+}
+
+.template-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.copy-button {
+  border: none;
+  border-radius: 999px;
+  min-height: 40px;
+  padding: 0 14px;
+  background: rgba(53, 107, 96, 0.12);
+  color: var(--mint);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.template-body {
+  margin: 0;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(247, 239, 228, 0.75);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  line-height: 1.65;
+  font-family: "UDEV Gothic 35JPDOC", "Consolas", monospace;
+  font-size: 0.92rem;
+}
+
 .task-card {
   display: block;
   border-radius: 20px;
@@ -311,6 +355,10 @@ textarea {
   .ghost-button:hover {
     background: rgba(133, 75, 44, 0.16);
   }
+
+  .copy-button:hover {
+    background: rgba(53, 107, 96, 0.18);
+  }
 }
 
 @media (max-width: 640px) {
@@ -327,5 +375,10 @@ textarea {
 
   .status-grid {
     grid-template-columns: 1fr;
+  }
+
+  .template-head {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
