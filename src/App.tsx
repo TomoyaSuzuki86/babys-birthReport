@@ -426,6 +426,56 @@ const sections: Section[] = [
     ]
   },
   {
+    id: "jitan-guide",
+    title: "育児時短同意書の書き方",
+    subtitle:
+      "docs/ikukyu_jitan_douisyo_printable.pdf を使うと、何を書くか迷いにくいです。",
+    tasks: [
+      {
+        id: "jitan-open-pdf",
+        title: "印刷用PDFを開く",
+        detail:
+          "事前に作成した `docs/ikukyu_jitan_douisyo_printable.pdf` を開いて、記入欄を確認する。"
+      },
+      {
+        id: "jitan-check-two-boxes",
+        title: "チェック欄2か所にチェックを入れる",
+        detail:
+          "会社案内どおり、受給資格確認と支給申請の両方にチェックを入れる。"
+      },
+      {
+        id: "jitan-fill-number",
+        title: "被保険者番号を記入する",
+        detail:
+          "雇用保険の被保険者番号を `4桁-6桁-1桁` の形式で記入する。"
+      },
+      {
+        id: "jitan-fill-name",
+        title: "被保険者氏名を直筆で記入し、必要なら捺印する",
+        detail:
+          "会社案内では署名捺印となっているので、直筆で氏名を書き、運用に合わせて押印する。"
+      },
+      {
+        id: "jitan-confirm-company",
+        title: "事業所名称を確認する",
+        detail:
+          "印刷用PDFには `日本ナレッジスペース株式会社` を入れてあるが、提出前に表記ゆれがないかだけ見直す。"
+      },
+      {
+        id: "jitan-scan-pdf",
+        title: "記入後に再度PDF化する",
+        detail:
+          "スマホスキャンでPDFにし、総務提出用フォルダへ保存する。原本郵送は不要。"
+      },
+      {
+        id: "jitan-attach-mail",
+        title: "総務宛メールに添付する",
+        detail:
+          "メールテンプレの『総務宛: 出産後の提出物送付』に添付して、そのまま送れる状態にする。"
+      }
+    ]
+  },
+  {
     id: "nicu",
     title: "NICU・未熟児養育医療の確認",
     subtitle: "該当しないなら非表示にできます。",
