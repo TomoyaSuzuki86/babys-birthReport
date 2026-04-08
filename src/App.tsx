@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 
 type InsuranceRoute = "workplace" | "national";
 type HandClaimant = "father" | "mother";
+
 type Task = {
   id: string;
   title: string;
   detail: string;
-  tags?: string[];
+  linkLabel?: string;
+  linkUrl?: string;
   onlyIf?: {
     insurance?: InsuranceRoute;
     nicu?: boolean;
@@ -34,19 +36,17 @@ const sections: Section[] = [
   {
     id: "decisions",
     title: "今夜の最重要決定",
-    subtitle: "ここが未決定だと、明日の窓口で止まりやすいです。",
+    subtitle: "ここが未決定だと、明日の窓口と帰宅後の電子申請の両方で止まりやすいです。",
     tasks: [
       {
         id: "choose-claimant",
         title: "児童手当の請求者を決める",
-        detail:
-          "原則は父母のうち所得が高い方。口座もその人名義にそろえる。"
+        detail: "原則は父母のうち恒常的に所得が高い方。振込先口座もその人名義にそろえる。"
       },
       {
         id: "choose-insurance",
         title: "子どもの健康保険ルートを決める",
-        detail:
-          "勤務先健康保険の扶養に入れるか、国民健康保険にするかを先に決める。"
+        detail: "勤務先の健康保険の扶養に入れるか、国民健康保険にするかを先に決める。"
       },
       {
         id: "confirm-two-forms",
@@ -56,16 +56,15 @@ const sections: Section[] = [
       },
       {
         id: "decide-mynumber",
-        title: "マイナンバーカード同時申請をするか決める",
-        detail:
-          "出生届と一緒に出すなら、同時申請対応の様式かを確認しておく。"
+        title: "赤ちゃんのマイナンバーカード同時申請をするか決める",
+        detail: "出生届と一緒に出すなら、同時申請対応の様式かを確認しておく。"
       }
     ]
   },
   {
     id: "documents",
     title: "書類と持ち物をそろえる",
-    subtitle: "明日そのまま持ち出せるよう、1か所にまとめます。",
+    subtitle: "窓口提出用と、電子申請の添付用を同時に準備します。",
     tasks: [
       {
         id: "pack-birth-forms",
@@ -90,7 +89,7 @@ const sections: Section[] = [
       {
         id: "pack-bank",
         title: "児童手当請求者名義の口座情報を用意する",
-        detail: "通帳かキャッシュカードを写真保存して現物も用意。"
+        detail: "通帳かキャッシュカードを写真保存して、現物もすぐ出せるようにする。"
       },
       {
         id: "pack-mynumber",
@@ -101,7 +100,7 @@ const sections: Section[] = [
         id: "copy-docs",
         title: "重要書類をスマホで撮影しておく",
         detail:
-          "本人確認書類、口座、保険証、出生届の控えに使えるページを保存する。"
+          "本人確認書類、口座、保険証、出生届の控えに使えるページを保存する。電子申請の添付用にも使う。"
       },
       {
         id: "pack-kokuho",
@@ -119,9 +118,9 @@ const sections: Section[] = [
     ]
   },
   {
-    id: "fillout",
-    title: "前夜の記入作業",
-    subtitle: "窓口で考えずに済む項目を先に埋めます。",
+    id: "digital-prep",
+    title: "電子申請の事前準備",
+    subtitle: "帰宅後にスマホだけで進めやすいよう、前夜に情報を固めます。",
     tasks: [
       {
         id: "write-kana",
@@ -139,28 +138,34 @@ const sections: Section[] = [
         detail: "明日は投函だけにする。"
       },
       {
-        id: "make-window-note",
-        title: "窓口で伝える順番メモを作る",
+        id: "prepare-online-upload",
+        title: "電子申請で添付しそうな画像を1つのアルバムにまとめる",
         detail:
-          "『出生届提出→児童手当→必要なら国保→医療証の必要書類確認』の順で動く。"
+          "本人確認書類、口座、保険資格情報、必要ならマイナンバー資料を1つにまとめる。"
+      },
+      {
+        id: "bookmark-links",
+        title: "電子申請ページをスマホのタブで開いておく",
+        detail:
+          "児童手当、子ども医療証、必要なら国保のページをブックマークしておくと、帰宅後すぐ進めやすい。"
+      },
+      {
+        id: "make-window-note",
+        title: "明日の窓口で伝える要点メモを作る",
+        detail:
+          "『出生届だけ提出したい。児童手当などは電子申請で進めたいので、今日確認が必要なことだけ知りたい』と伝える。"
       }
     ]
   },
   {
     id: "tomorrow",
     title: "明日市役所でやること",
-    subtitle: "現地ではこの順で進めると迷いにくいです。",
+    subtitle: "窓口は出生届に絞り、その場でしか確認できないことだけ聞きます。",
     tasks: [
       {
         id: "submit-birth",
         title: "市民課で出生届2通を提出する",
-        detail: "同日にほかの手続きも進めたいと最初に伝える。"
-      },
-      {
-        id: "ask-child-hand",
-        title: "出生届受理後に児童手当の窓口へ進む",
-        detail:
-          "請求者、口座、マイナンバー資料をまとめて出せるようにしておく。"
+        detail: "同日に電子申請へ切り替えたいことを最初に伝える。"
       },
       {
         id: "submit-mynumber",
@@ -168,30 +173,55 @@ const sections: Section[] = [
         detail: "出生届と一緒に処理できるか、その場で確認する。"
       },
       {
-        id: "go-kokuho",
-        title: "保険年金課で国保加入手続きをする",
-        detail: "子どもを国保に入れる場合のみ。",
-        onlyIf: { insurance: "national" }
+        id: "confirm-child-hand-online",
+        title: "児童手当を電子申請で出す前提で、請求区分だけ最終確認する",
+        detail:
+          "第1子出生として新規認定請求になるか、上の子がいて額改定になるかを自分の状況に照らして確認する。"
       },
       {
         id: "confirm-iryosho",
-        title: "子ども医療証の今日必要な書類を窓口で確認する",
+        title: "子ども医療証を電子申請で出す前提で必要書類だけ確認する",
         detail:
-          "勤務先健保ルートなら、その日に完了できない前提で後追い方法も確認する。"
+          "子どもの保険資格情報がまだない場合は、何がそろった時点で申請できるかを確認する。"
       },
       {
-        id: "ask-postal",
-        title: "当日完了しない手続きの郵送・電子申請可否を聞く",
-        detail:
-          "医療証、未熟児養育医療、追加提出書類の出し方をその場で確認する。"
+        id: "ask-digital-route",
+        title: "当日完了しない手続きの電子申請ルートを確認する",
+        detail: "医療証、国保、追加提出書類の出し方をその場で確認する。"
       }
     ]
   },
   {
-    id: "after",
-    title: "市役所後にすぐやること",
-    subtitle: "家に戻ってからの抜け漏れ防止です。",
+    id: "online-after",
+    title: "帰宅後にスマホで電子申請すること",
+    subtitle: "出生届の受理後に、窓口へ戻らず進める前提の動線です。",
     tasks: [
+      {
+        id: "apply-child-hand-online",
+        title: "児童手当を電子申請する",
+        detail:
+          "ぴったりサービスから進める。第1子出生なら新規認定請求、すでに受給中なら額改定請求を選ぶ。",
+        linkLabel: "大和市 児童手当電子申請案内",
+        linkUrl:
+          "https://www.city.yamato.lg.jp/gyosei/soshik/7/sonohokanojoho/kosodate/kosodatesupport/6385.html"
+      },
+      {
+        id: "apply-kokuho-online",
+        title: "国保加入をオンライン申請する",
+        detail:
+          "子どもを国保に入れる場合のみ。出生届完了後に、ぴったりサービスから申請する。",
+        linkLabel: "大和市 国保オンライン手続き",
+        linkUrl: "https://www.city.yamato.lg.jp/gyosei/soshik/2020/21347.html",
+        onlyIf: { insurance: "national" }
+      },
+      {
+        id: "apply-iryosho-online",
+        title: "子ども医療証の交付申請を電子申請する",
+        detail:
+          "子どもの保険資格情報が確認できる資料がそろったら、そのまま電子申請で送る。",
+        linkLabel: "大和市 子ども医療証",
+        linkUrl: "https://www.city.yamato.lg.jp/section/ehon_no_machi/age/C/C00006.html"
+      },
       {
         id: "post-birth-contact",
         title: "出生連絡票を投函する",
@@ -212,7 +242,7 @@ const sections: Section[] = [
       {
         id: "track-iryosho",
         title: "医療証の不足書類があれば提出予定日を決める",
-        detail: "保険資格情報が出たらすぐ動けるようメモに残す。"
+        detail: "保険資格情報がまだないなら、出る見込み日をメモして再申請漏れを防ぐ。"
       }
     ]
   },
@@ -236,7 +266,7 @@ const sections: Section[] = [
       {
         id: "avoid-prepay",
         title: "養育医療券の案内が出る前に自己判断で精算しない",
-        detail: "PDFでも、先払い後の払い戻し不可に注意と整理されている。",
+        detail: "先払い後の払い戻し不可になり得るので、病院と市の案内を待つ。",
         onlyIf: { nicu: true }
       }
     ]
@@ -287,28 +317,44 @@ function App() {
 
   const visibleSections = useMemo(
     () =>
-      sections.map((section) => ({
-        ...section,
-        tasks: section.tasks.filter((task) => {
-          if (task.onlyIf?.insurance && task.onlyIf.insurance !== state.insurance) {
-            return false;
-          }
-          if (typeof task.onlyIf?.nicu === "boolean" && task.onlyIf.nicu !== state.nicu) {
-            return false;
-          }
-          return true;
-        })
-      })).filter((section) => section.tasks.length > 0),
+      sections
+        .map((section) => ({
+          ...section,
+          tasks: section.tasks.filter((task) => {
+            if (
+              task.onlyIf?.insurance &&
+              task.onlyIf.insurance !== state.insurance
+            ) {
+              return false;
+            }
+            if (
+              typeof task.onlyIf?.nicu === "boolean" &&
+              task.onlyIf.nicu !== state.nicu
+            ) {
+              return false;
+            }
+            return true;
+          })
+        }))
+        .filter((section) => section.tasks.length > 0),
     [state.insurance, state.nicu]
   );
 
   const visibleTaskIds = visibleSections.flatMap((section) =>
     section.tasks.map((task) => task.id)
   );
-  const completedCount = visibleTaskIds.filter((id) => state.checked.includes(id)).length;
-  const progress = visibleTaskIds.length === 0 ? 0 : Math.round((completedCount / visibleTaskIds.length) * 100);
+  const completedCount = visibleTaskIds.filter((id) =>
+    state.checked.includes(id)
+  ).length;
+  const progress =
+    visibleTaskIds.length === 0
+      ? 0
+      : Math.round((completedCount / visibleTaskIds.length) * 100);
+
   const nextTask = visibleSections
-    .flatMap((section) => section.tasks.map((task) => ({ ...task, sectionTitle: section.title })))
+    .flatMap((section) =>
+      section.tasks.map((task) => ({ ...task, sectionTitle: section.title }))
+    )
     .find((task) => !state.checked.includes(task.id));
 
   const toggleTask = (taskId: string) => {
@@ -334,6 +380,9 @@ function App() {
         <p className="lead">
           双子前提で、前夜準備から市役所後の後追いまでを細かく分解しています。
           進捗はこの端末に保存されるので、途中で閉じても続きから再開できます。
+        </p>
+        <p className="strategy-note">
+          この版では、出生届だけを窓口で進め、児童手当を含むそれ以外はできるだけ電子申請に寄せる前提で組んでいます。
         </p>
 
         <div className="status-grid">
@@ -428,7 +477,7 @@ function App() {
           <p className="next-label">次にやること</p>
           <h2>見えているタスクはすべて完了です</h2>
           <p className="next-detail">
-            明日の窓口で言われた追加書類があれば、メモ欄に残して後追い分を管理してください。
+            明日の窓口や電子申請で追加書類が出たら、メモ欄に残して後追い分を管理してください。
           </p>
         </section>
       )}
@@ -469,6 +518,18 @@ function App() {
                     <div>
                       <span className="task-title">{task.title}</span>
                       <p className="task-detail">{task.detail}</p>
+                      {task.linkUrl ? (
+                        <p className="task-link-row">
+                          <a
+                            className="task-link"
+                            href={task.linkUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {task.linkLabel ?? "関連ページを開く"}
+                          </a>
+                        </p>
+                      ) : null}
                     </div>
                   </div>
                 </label>

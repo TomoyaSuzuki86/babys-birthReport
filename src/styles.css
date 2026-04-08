@@ -86,6 +86,16 @@ h1 {
   color: rgba(46, 40, 31, 0.86);
 }
 
+.strategy-note {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 248, 239, 0.95);
+  border: 1px solid rgba(186, 107, 63, 0.14);
+  color: rgba(46, 40, 31, 0.82);
+  line-height: 1.7;
+}
+
 .status-grid {
   margin-top: 22px;
   display: grid;
@@ -279,6 +289,17 @@ textarea {
   margin-top: 6px;
   color: rgba(46, 40, 31, 0.74);
   line-height: 1.65;
+}
+
+.task-link-row {
+  margin-top: 10px;
+}
+
+.task-link {
+  color: var(--accent-deep);
+  font-weight: 700;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
 }
 
 @media (hover: hover) {
