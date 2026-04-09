@@ -534,6 +534,7 @@ function App() {
   const [state, setState] = useState<ProgressState>(defaultState);
   const [ready, setReady] = useState(false);
   const [copiedTemplateId, setCopiedTemplateId] = useState<string | null>(null);
+  const [activeSectionId, setActiveSectionId] = useState<string>("");
 
   useEffect(() => {
     setState(loadState());
@@ -564,11 +565,28 @@ function App() {
               return false;
             }
             return true;
+          }).sort((a, b) => {
+            const aChecked = state.checked.includes(a.id);
+            const bChecked = state.checked.includes(b.id);
+
+            if (aChecked === bChecked) return 0;
+            return aChecked ? 1 : -1;
           })
         }))
         .filter((section) => section.tasks.length > 0),
-    [state.insurance, state.nicu]
+    [state.checked, state.insurance, state.nicu]
   );
+
+  useEffect(() => {
+    if (visibleSections.length === 0) {
+      setActiveSectionId("");
+      return;
+    }
+
+    if (!visibleSections.some((section) => section.id === activeSectionId)) {
+      setActiveSectionId(visibleSections[0].id);
+    }
+  }, [activeSectionId, visibleSections]);
 
   const visibleTaskIds = visibleSections.flatMap((section) =>
     section.tasks.map((task) => task.id)
@@ -586,6 +604,17 @@ function App() {
       section.tasks.map((task) => ({ ...task, sectionTitle: section.title }))
     )
     .find((task) => !state.checked.includes(task.id));
+
+  const activeSection =
+    visibleSections.find((section) => section.id === activeSectionId) ?? null;
+  const activeTaskIds = activeSection?.tasks.map((task) => task.id) ?? [];
+  const activeCompletedCount = activeTaskIds.filter((id) =>
+    state.checked.includes(id)
+  ).length;
+  const activeProgress =
+    activeTaskIds.length === 0
+      ? 0
+      : Math.round((activeCompletedCount / activeTaskIds.length) * 100);
 
   const toggleTask = (taskId: string) => {
     setState((current) => ({
@@ -789,48 +818,120 @@ function App() {
         </div>
       </section>
 
-      {visibleSections.map((section) => (
-        <section className="task-section" key={section.id}>
+      {visibleSections.length > 0 ? (
+        <section className="task-section">
           <div className="section-head">
-            <h2>{section.title}</h2>
-            <p>{section.subtitle}</p>
+            <h2>Task Sections</h2>
+            <p>Switch between sections and track progress for each one.</p>
           </div>
 
-          <div className="task-list">
-            {section.tasks.map((task) => {
-              const checked = state.checked.includes(task.id);
+          <div className="tab-list" role="tablist" aria-label="Task section tabs">
+            {visibleSections.map((section) => {
+              const sectionTaskIds = section.tasks.map((task) => task.id);
+              const sectionCompletedCount = sectionTaskIds.filter((id) =>
+                state.checked.includes(id)
+              ).length;
+              const sectionProgress =
+                sectionTaskIds.length === 0
+                  ? 0
+                  : Math.round(
+                      (sectionCompletedCount / sectionTaskIds.length) * 100
+                    );
+              const isActive = section.id === activeSectionId;
 
               return (
-                <label className={`task-card ${checked ? "done" : ""}`} key={task.id}>
-                  <div className="task-top">
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => toggleTask(task.id)}
-                    />
-                    <div>
-                      <span className="task-title">{task.title}</span>
-                      <p className="task-detail">{task.detail}</p>
-                      {task.linkUrl ? (
-                        <p className="task-link-row">
-                          <a
-                            className="task-link"
-                            href={task.linkUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            {task.linkLabel ?? "関連ページを開く"}
-                          </a>
-                        </p>
-                      ) : null}
-                    </div>
-                  </div>
-                </label>
+                <button
+                  key={section.id}
+                  className={`tab-button ${isActive ? "active" : ""}`}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-controls={`panel-${section.id}`}
+                  id={`tab-${section.id}`}
+                  onClick={() => setActiveSectionId(section.id)}
+                >
+                  <span className="tab-title">{section.title}</span>
+                  <span className="tab-meta">
+                    {sectionCompletedCount}/{sectionTaskIds.length} done | {sectionProgress}%
+                  </span>
+                </button>
               );
             })}
           </div>
+
+          {activeSection ? (
+            <div
+              className="tab-panel"
+              role="tabpanel"
+              id={`panel-${activeSection.id}`}
+              aria-labelledby={`tab-${activeSection.id}`}
+            >
+              <div className="tab-panel-head">
+                <div className="section-head">
+                  <h2>{activeSection.title}</h2>
+                  <p>{activeSection.subtitle}</p>
+                </div>
+
+                <div className="tab-progress-card">
+                  <div className="tab-progress-row">
+                    <strong>{activeProgress}%</strong>
+                    <span>
+                      {activeCompletedCount}/{activeTaskIds.length} done
+                    </span>
+                  </div>
+                  <div
+                    className="progress-bar section-progress-bar"
+                    aria-label={`${activeSection.title} progress ${activeProgress}%`}
+                    role="progressbar"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={activeProgress}
+                  >
+                    <div
+                      className="progress-fill"
+                      style={{ width: `${activeProgress}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="task-list">
+                {activeSection.tasks.map((task) => {
+                  const checked = state.checked.includes(task.id);
+
+                  return (
+                    <label className={`task-card ${checked ? "done" : ""}`} key={task.id}>
+                      <div className="task-top">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleTask(task.id)}
+                        />
+                        <div>
+                          <span className="task-title">{task.title}</span>
+                          <p className="task-detail">{task.detail}</p>
+                          {task.linkUrl ? (
+                            <p className="task-link-row">
+                              <a
+                                className="task-link"
+                                href={task.linkUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {task.linkLabel ?? "Open related page"}
+                              </a>
+                            </p>
+                          ) : null}
+                        </div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
         </section>
-      ))}
+      ) : null}
     </main>
   );
 }
