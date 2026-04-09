@@ -801,19 +801,23 @@ function App() {
         </div>
         <div className="template-list">
           {mailTemplates.map((template) => (
-            <article className="template-card" key={template.id}>
-              <div className="template-head">
+            <details className="template-card template-accordion" key={template.id}>
+              <summary className="template-summary">
                 <h3>{template.title}</h3>
-                <button
-                  className="copy-button"
-                  type="button"
-                  onClick={() => copyTemplate(template)}
-                >
-                  {copiedTemplateId === template.id ? "コピー済み" : "本文をコピー"}
-                </button>
+              </summary>
+              <div className="template-content">
+                <div className="template-head">
+                  <button
+                    className="copy-button"
+                    type="button"
+                    onClick={() => copyTemplate(template)}
+                  >
+                    {copiedTemplateId === template.id ? "????????" : "??????????"}
+                  </button>
+                </div>
+                <pre className="template-body">{template.body}</pre>
               </div>
-              <pre className="template-body">{template.body}</pre>
-            </article>
+            </details>
           ))}
         </div>
       </section>

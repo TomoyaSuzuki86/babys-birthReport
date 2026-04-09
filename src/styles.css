@@ -345,9 +345,48 @@ textarea {
   padding: 16px;
 }
 
+.template-accordion {
+  padding: 0;
+  overflow: hidden;
+}
+
+.template-summary {
+  display: block;
+  list-style: none;
+  cursor: pointer;
+  padding: 16px;
+}
+
+.template-summary::-webkit-details-marker {
+  display: none;
+}
+
+.template-summary h3 {
+  position: relative;
+  padding-right: 28px;
+}
+
+.template-summary h3::after {
+  content: "+";
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: var(--accent-deep);
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.template-accordion[open] .template-summary h3::after {
+  content: "-";
+}
+
+.template-content {
+  padding: 0 16px 16px;
+}
+
 .template-head {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   gap: 12px;
   margin-bottom: 12px;
